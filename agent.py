@@ -1,4 +1,4 @@
-from snake_env import Snake
+# from snake_env import Snake
 
 import random
 import numpy as np
@@ -7,6 +7,10 @@ from collections import deque
 from keras.layers import Dense
 import matplotlib.pyplot as plt
 from keras.optimizers import Adam
+from keras.src.utils import pad_sequences
+
+from asteroids_lib.asteroids_env import Game
+from asteroids_lib.constants import GlobalConstants, Constants
 from plot_script import plot_result
 import time
 
@@ -16,8 +20,8 @@ class DQN:
 
     def __init__(self, env, params):
 
-        self.action_space = env.action_space
-        self.state_space = env.state_space
+        self.action_space = 4
+        self.state_space = 5
         self.epsilon = params['epsilon']
         self.gamma = params['gamma']
         self.batch_size = params['batch_size']
@@ -49,6 +53,30 @@ class DQN:
         act_values = self.model.predict(state)
         return np.argmax(act_values[0])
 
+    # def replay(self):
+    #     if len(self.memory) < self.batch_size:
+    #         return
+    #
+    #     minibatch = random.sample(self.memory, self.batch_size)
+    #
+    #     # Дополнение состояний до фиксированной длины
+    #     states = pad_sequences([i[0] for i in minibatch], padding='post', maxlen=100)
+    #     actions = np.array([i[1] for i in minibatch])
+    #     rewards = np.array([i[2] for i in minibatch])
+    #     next_states = pad_sequences([i[3] for i in minibatch], padding='post',
+    #                                 maxlen=100)  # дополнение next_states
+    #     dones = np.array([i[4] for i in minibatch])
+    #
+    #     targets = rewards + self.gamma * (np.amax(self.model.predict_on_batch(next_states), axis=1)) * (1 - dones)
+    #     targets_full = self.model.predict_on_batch(states)
+    #
+    #     ind = np.array([i for i in range(self.batch_size)])
+    #     targets_full[[ind], [actions]] = targets
+    #
+    #     self.model.fit(states, targets_full, epochs=1, verbose=0)
+    #
+    #     if self.epsilon > self.epsilon_min:
+    #         self.epsilon *= self.epsilon_decay
     def replay(self):
 
         if len(self.memory) < self.batch_size:
@@ -64,7 +92,7 @@ class DQN:
         states = np.squeeze(states)
         next_states = np.squeeze(next_states)
 
-        targets = rewards + self.gamma * (np.amax(self.model.predict_on_batch(next_states), axis=1)) * (1 - dones)
+        targets = rewards + self.gamma*(np.amax(self.model.predict_on_batch(next_states), axis=1))*(1-dones)
         targets_full = self.model.predict_on_batch(states)
 
         ind = np.array([i for i in range(self.batch_size)])
@@ -106,11 +134,11 @@ if __name__ == '__main__':
     params = dict()
     params['name'] = None
     params['epsilon'] = 1
-    params['gamma'] = .95
+    params['gamma'] = .99
     params['batch_size'] = 500
     params['epsilon_min'] = .01
     params['epsilon_decay'] = .995
-    params['learning_rate'] = 0.00025
+    params['learning_rate'] = 0.001
     params['layer_sizes'] = [128, 128, 128]
 
     results = dict()
@@ -130,8 +158,9 @@ if __name__ == '__main__':
     #     env_info = env_infos[key]
     #     print(env_info)
     #     env = Snake(env_info=env_info)
-    env = Snake()
+    env = Game(GlobalConstants.screen_size)
     sum_of_rewards = train_dqn(ep, env)
+    print(sum_of_rewards)
     results[params['name']] = sum_of_rewards
 
     plot_result(results, direct=True, k=20)

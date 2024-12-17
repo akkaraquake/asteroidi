@@ -17,13 +17,13 @@ class Constants(object):
     # Скорость поворота, радианы/c.
     ship_rotation_speed = math.pi * 2.0
     # Ускорение корабля, пикселы/с^2.
-    ship_accel = 50
+    ship_accel = 30
 
-    asteroids_num = 10
-    asteroid_max_start_speed = 30
+    asteroids_num = 7
+    asteroid_max_start_speed = 20
     asteroid_min_mass = 500.0
     asteroid_min_start_size = 20
-    asteroid_max_start_size = 50
+    asteroid_max_start_size = 30
     asteroid_mass_division_coef = 3.0
     asteroid_explode_min_coef = 0.5
     asteroid_explode_max_coef = 1.0
@@ -44,3 +44,4 @@ class Color(object):
     ship_waiting = green
     bullet = yellow
     asteroid = (127, 127, 127)
+
