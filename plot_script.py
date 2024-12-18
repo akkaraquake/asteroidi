@@ -62,8 +62,8 @@ def plot_result(data_name_array, direct=False, k=5):
     max_to_hundred = int(math.ceil(max(max_list) / 100.0)) * 100
 
     ax.legend(handles=plt_agent_sweeps, fontsize=13)
-    ax.set_title("Learning Curve", fontsize=15)
-    ax.set_xlabel('Episodes', fontsize=14)
-    ax.set_ylabel("Sum of\nreward\nduring\nepisode", rotation=0, labelpad=40, fontsize=14)
+    ax.set_title("Кривая обучения", fontsize=15)
+    ax.set_xlabel('Эпизоды', fontsize=14)
+    ax.set_ylabel("Сумма\nнаград\nна протяжении\nэпизода", rotation=0, labelpad=40, fontsize=14)
     ax.set_ylim([-200, max_to_hundred])
     plt.show()

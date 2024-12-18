@@ -50,13 +50,6 @@ class Scene(object):
             self.asteroids.append(Asteroid(pos, vel, radius, mass))
 
 
-class State(object):
-    """Перечисление состояний игры"""
-
-    WAITING_START = 0  # Ожидаем, пока пользователь нажмёт пробел и корабль
-    # войдёт в игру.
-    IN_GAME = 1  # Корабль в игре.
-
 
 class Game(object):
     """Игра"""
@@ -65,7 +58,6 @@ class Game(object):
         super(Game, self).__init__()
         self._screen_size = Vector(screen_size[0], screen_size[1])
         self._scene = Scene(self._screen_size)
-        self._state = State.WAITING_START
         self.state_space = 5
         self.reward_given = False
 
@@ -99,15 +91,6 @@ class Game(object):
         draw_with_duplicates(screen, self._screen_size,
                              self._scene.ship, draw_ship_in_game)
 
-        # if self._state == State.WAITING_START:
-        #     # Рисуем корабль не активным, т.к. игра ещё не начата.
-        #     draw_with_duplicates(screen, self._screen_size,
-        #                          self._scene.ship, draw_ship_waiting_start)
-        # else:
-        #     # Рисуем корабль.
-        #     assert self._state == State.IN_GAME
-        #     draw_with_duplicates(screen, self._screen_size,
-        #                          self._scene.ship, draw_ship_in_game)
 
     def update(self, dt):
         """Обновляем состояние игры на время dt.
@@ -117,26 +100,6 @@ class Game(object):
           False, если игру необходимо завершить.
         """
 
-        # Список произошедших внешних событий.
-        # events = list(pygame.event.get())
-
-        # Обработка общих событий для всех состояний игры.
-        # for event in events:
-        #     if (event.type == pygame.QUIT or
-        #             (event.type == pygame.KEYDOWN and
-        #              event.key == pygame.K_ESCAPE)):
-        #         # Нажат крест на окне или Escape.
-        #         # Прерываем обновление и возвращаем флаг, что необходимо
-        #         # завершить программу
-        #         return False
-        #
-        #     # Обрабатываем события нажатия/отжатия кнопок, чтобы всегда иметь
-        #     # общее состояние клавиатуры.
-        #     if event.type == pygame.KEYDOWN:
-        #         self._keys_state[event.key] = True
-        #     if event.type == pygame.KEYUP:
-        #         self._keys_state[event.key] = False
-
         # Общая для всех состояний логика: обновить положения астероидов,
         # обновить положения пуль.
         self._move_asteroids(dt)
@@ -145,13 +108,6 @@ class Game(object):
         self._update_bullets()
         self._collide_bullets_with_asteroids()
         self._update_ship_orientation(dt)
-
-        # Вызываем функцию обновления, соответствующую состоянию игры.
-        # if self._state == State.WAITING_START:
-        #     self._update_waiting_start(dt, events)
-        # else:
-        #     assert self._state == State.IN_GAME
-        #     self._update_in_game(dt, events)
 
         # Возвращаем флаг, что игру необходимо продолжать
         return True
@@ -179,11 +135,7 @@ class Game(object):
             self.reward = -100
             self.reward_given = True
             self.done = True
-        # else
-        #     self.reward += 1
-        # if self.is_asteroid_nearby():
-        #     self.reward = -1
-        #     reward_given = True
+
         if self._collide_bullets_with_asteroids():
             self.reward = 10
             self.reward_given = True
@@ -191,14 +143,9 @@ class Game(object):
         if not self.reward_given:
             self.reward = 0
 
-        # if len(self._scene.asteroids) == 0:
-        #     self.done = True
         if len(self._scene.asteroids) < 7:
             self._scene.create_asteroids(self._screen_size, 8)
-        # time.sleep(0.1)
-        # if self.human:
-        #     time.sleep(SLEEP)
-        #     state = self.get_state()
+
 
     # AI agent
     def step(self, action):
@@ -215,11 +162,9 @@ class Game(object):
         return state, self.reward, self.done, {}
 
     def get_state(self):
-        # state: ship
-        state = [self._scene.ship.position.x / GlobalConstants.screen_size[0], self._scene.ship.position.y / GlobalConstants.screen_size[1],
-                 (self._scene.ship.orientation % (2*math.pi)) / (2*math.pi), (self._scene.ship.velocity.x + 50) / 100, (self._scene.ship.velocity.y + 50) / 100]
-        # for asteroid in self._scene.asteroids:
-        #     state.append(int(self.is_current_asteroid_nearby(asteroid)))
+        # состояния : позиция корабля (по x и y), направление, скорость по (х и у)
+        state = [self.norm_position_x(self._scene.ship.position.x), self.norm_position_y(self._scene.ship.position.y),
+                 self.norm_orientation(self._scene.ship.orientation), self.norm_velocity(self._scene.ship.velocity.x), self.norm_velocity(self._scene.ship.velocity.y)]
         print(state)
         return state
 
@@ -233,19 +178,26 @@ class Game(object):
         return state
 
 
+    def norm_position_x(self, position_x):
+        return position_x / GlobalConstants.screen_size[0]
 
+    def norm_position_y(self, position_y):
+        return position_y / GlobalConstants.screen_size[1]
+
+    def norm_orientation(self, orientation):
+        return (orientation % (2 * math.pi)) / (2 * math.pi)
+
+    def norm_velocity(self, velocity):
+        return (velocity + 50) / 100
 
     def _is_key_down(self, key):
         """Возвращаем состояние кнопки"""
         return self._keys_state.setdefault(key, False)
 
-    def _change_state_to_in_game(self):
-        """Функция перехода из состояния AWAITING_START в IN_GAME"""
-        self._state = State.IN_GAME
+
 
     def _change_state_to_waiting_start(self):
         """Функция перехода из состояния IN_GAME в AWAITING_START"""
-        self._state = State.WAITING_START
         self._scene.ship.position = self._screen_size / 2.0
         self._scene.ship.orientation = math.pi
         self._scene.ship.velocity = Vector(0, 0)

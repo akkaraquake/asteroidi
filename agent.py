@@ -1,5 +1,3 @@
-# from snake_env import Snake
-
 import random
 import numpy as np
 from keras import Sequential
@@ -53,30 +51,6 @@ class DQN:
         act_values = self.model.predict(state)
         return np.argmax(act_values[0])
 
-    # def replay(self):
-    #     if len(self.memory) < self.batch_size:
-    #         return
-    #
-    #     minibatch = random.sample(self.memory, self.batch_size)
-    #
-    #     # Дополнение состояний до фиксированной длины
-    #     states = pad_sequences([i[0] for i in minibatch], padding='post', maxlen=100)
-    #     actions = np.array([i[1] for i in minibatch])
-    #     rewards = np.array([i[2] for i in minibatch])
-    #     next_states = pad_sequences([i[3] for i in minibatch], padding='post',
-    #                                 maxlen=100)  # дополнение next_states
-    #     dones = np.array([i[4] for i in minibatch])
-    #
-    #     targets = rewards + self.gamma * (np.amax(self.model.predict_on_batch(next_states), axis=1)) * (1 - dones)
-    #     targets_full = self.model.predict_on_batch(states)
-    #
-    #     ind = np.array([i for i in range(self.batch_size)])
-    #     targets_full[[ind], [actions]] = targets
-    #
-    #     self.model.fit(states, targets_full, epochs=1, verbose=0)
-    #
-    #     if self.epsilon > self.epsilon_min:
-    #         self.epsilon *= self.epsilon_decay
     def replay(self):
 
         if len(self.memory) < self.batch_size:
@@ -142,22 +116,8 @@ if __name__ == '__main__':
     params['layer_sizes'] = [128, 128, 128]
 
     results = dict()
-    ep = 50
+    ep = 30
 
-    # for batchsz in [1, 10, 100, 1000]:
-    #     print(batchsz)
-    #     params['batch_size'] = batchsz
-    #     nm = ''
-    #     params['name'] = f'Batchsize {batchsz}'
-    env_infos = {'States: only walls': {'state_space': 'no body knowledge'},
-                 'States: direction 0 or 1': {'state_space': ''}, 'States: coordinates': {'state_space': 'coordinates'},
-                 'States: no direction': {'state_space': 'no direction'}}
-
-    # for key in env_infos.keys():
-    #     params['name'] = key
-    #     env_info = env_infos[key]
-    #     print(env_info)
-    #     env = Snake(env_info=env_info)
     env = Game(GlobalConstants.screen_size)
     sum_of_rewards = train_dqn(ep, env)
     print(sum_of_rewards)
